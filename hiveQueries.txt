@@ -1,0 +1,31 @@
+I. To find the average Departure Delay of all flights in minutes.
+	   SELECT avg(DepDelay) from flightsInfo;  
+		Output = 9.58 minutes
+
+
+1. 
+INSERT OVERWRITE DIRECTORY '/user/training/hiveOutput/delay_airports' select origin,count(if(DepDelay > 19.16, "", NULL)) as delayed_2avg,
+count(*) as total_Flights,count(if(DepDelay > 19.16, "", NULL)) / count(*) as delayed_Rate from flightsInfo 
+group by origin order by delayed_Rate desc;
+
+2.
+INSERT OVERWRITE DIRECTORY '/user/training/hiveOutput/delay_airlines' select month,uniquecarrier,count(if(DepDelay > 19.16, "", NULL)) as delayed_2avg,
+count(*) as total_Flights,count(if(DepDelay > 19.16, "", NULL)) / count(*) as delayed_Rate from flightsInfo 
+group by month,uniquecarrier order by month asc,delayed_Rate desc;
+
+3. Top 10 weather delays
+INSERT OVERWRITE DIRECTORY '/user/training/hiveOutput/delay_weather' select Month,origin,count(if(WeatherDelay > 0, "", NULL)) as WDelay 
+from FlightsInfo group by Month,origin order by WDelay desc limit 10;
+
+4. Old planes causing delay? on Top 50 Arrival Delays 
+INSERT OVERWRITE DIRECTORY '/user/training/hiveOutput/delay_oldPlanes' select TailNum,UniqueCarrier,count(if(ArrDelay > 19.16, "", NULL)) as delayed_2avg,count(*) as totalFlights,
+count(if(DepDelay > 19.16, "", NULL)) / count(*) as delayed_Rate from flightsInfo
+group by UniqueCarrier,TailNum order by delayed_Rate desc limit 50;  
+
+5. Cascading delay? Top 100 arrival and departure composed delays
+INSERT OVERWRITE DIRECTORY '/user/training/hiveOutput/delay_cascade' select dayofmonth,month,UniqueCarrier,origin,dest,count(if(ArrDelay>15,"",NULL)) 
+as arDelay,count(if(DepDelay>15,"",NULL)) as dpDelay, count(*) as totalFlights,
+count(if(ArrDelay>15,"",NULL))/count(*) as arRate,count(if(DepDelay>15,"",NULL))/count(*) as dRate
+from flightsInfo group by dayofmonth,month,UniqueCarrier,origin,dest order by arRate desc,dRate desc limit 50;
+
+	
